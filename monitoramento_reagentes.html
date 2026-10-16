@@ -1,0 +1,1456 @@
+<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Monitoramento de reagentes - Laboratório de Microbiologia</title>
+<style>
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#F1F5F8;color:#20364B;margin:0;padding:20px}
+.wrap{max-width:1500px;margin:auto}.header{background:linear-gradient(115deg,#087F62,#075783 65%,#113D61);border-radius:18px;padding:28px 32px;color:white;box-shadow:0 8px 28px #14325718}
+.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:10px;font-weight:700;margin-bottom:12px;color:#C9EEE5}h1{font-size:30px;letter-spacing:-.7px;margin:0 0 9px}h2{font-size:18px;letter-spacing:-.2px;color:#143257;margin:0 0 8px}.note{font-size:12px;color:#64788B;line-height:1.6}.header .note{color:#DBEBF3;margin-top:12px}
+.panel,.card{background:white;border:1px solid #E1E8EF;border-radius:14px;box-shadow:0 3px 14px #183C6106;padding:22px;margin-top:18px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.panel-head h2{margin:0}.filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}label{font-size:12px;font-weight:bold;color:#526B81}select,input{display:block;margin-top:7px;width:100%;height:44px;border:1px solid #D6E0E9;border-radius:8px;padding:10px;background:#FAFCFE;color:#20364B;font-size:13px}select:focus,input:focus,button:focus-visible{outline:3px solid #91CDDF;outline-offset:2px}
+button{border:1px solid #D6E0E9;background:white;color:#245775;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:bold;font-size:12px}button:hover{background:#EFF6FA}.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.secondary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{text-align:center;border-top:3px solid #D2DFE8;padding:20px}.card:nth-child(2){border-top-color:#1167A4}.card:nth-child(3){border-top-color:#009878}.value{white-space:pre-line;font-size:32px;font-weight:700;letter-spacing:-1px;color:#143257;margin-top:12px;overflow-wrap:anywhere}.label{font-size:12px;color:#526B81}.secondary .card{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;border-top:1px solid #E1E8EF;margin-top:14px;padding:16px 22px}.secondary .value{font-size:26px;margin:0}.context{margin:22px 2px -6px;color:#526B81;font-size:12px}.context strong{color:#143257}
+.scroll{max-height:480px;overflow:auto;border:1px solid #E1E8EF;border-radius:10px}table{border-collapse:collapse;width:100%;font-size:12px}th{background:#143257;color:white;position:sticky;top:0;z-index:1;white-space:nowrap}th,td{padding:14px 12px;border-bottom:1px solid #E8ECF0;text-align:center}td:first-child{text-align:left;min-width:260px}tbody tr:nth-child(even){background:#F7FAFC}tbody tr:hover{background:#ECF5FA}.yes{color:#00795F;font-weight:bold}.empty{color:#A65B00}.zero{color:#9B3E26;font-weight:bold}.badge{display:inline-block;border-radius:20px;padding:5px 9px;font-size:11px;white-space:nowrap}.controlled{background:#EAF2FC;color:#155C99}.uncontrolled{background:#E5F5EE;color:#16724F}.emptybox{padding:34px 18px;text-align:center;color:#738596;background:#F8FAFC;border-radius:10px;font-size:13px}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.value{font-size:28px}}
+@media(max-width:650px){body{padding:8px}.header{padding:23px}.filters{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.secondary{grid-template-columns:1fr}.secondary .card{margin-top:8px}.panel{padding:16px}.panel-head{align-items:flex-start;flex-direction:column}h1{font-size:25px}}
+@media(max-width:650px){.filters{grid-template-columns:1fr}}
+
+.share-tools{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.share-tools label{flex:1;min-width:260px}
+.share-tools input{width:100%;margin-top:7px}
+.share-tools button{min-height:44px}
+.qr-result{margin-top:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.qr-result[hidden]{display:none}
+.qr-result canvas{max-width:100%;height:auto;border:1px solid #e1e8ef;border-radius:9px}
+.qr-note{margin-top:12px}
+.qr-status{margin-top:8px;font-size:12px;color:#526B81}
+</style>
+</head>
+<body><div class="wrap">
+<div class="header"><div class="eyebrow">Laboratório industrial · Gestão de estoque</div><h1>Monitoramento de reagentes - Laboratório de Microbiologia</h1><div>Estoque mensal do laboratório</div></div>
+<div class="panel"><div class="panel-head"><h2>Filtros de acompanhamento</h2><button id="limpar" type="button">Limpar filtros</button></div><div class="filters">
+<label>Classificação<select id="classe"><option value="">Todas</option><option value="sim">Controlados</option><option value="nao">Não controlados</option></select></label>
+<label>Órgão<select id="orgao"><option value="">Todos</option><option value="pf">Polícia Federal</option><option value="pc">Polícia Civil</option><option value="eb">Exército</option><option value="nao">Não controlado</option></select></label>
+</div></div>
+<div class="context" id="contexto"></div><div class="kpis" id="cards"></div><div class="secondary" id="agencias"></div>
+<div class="panel"><div class="panel-head"><div><h2>Estoque mensal</h2><div class="note" id="linhasTabela"></div></div><button id="baixarTabela" type="button">↓ Baixar tabela mensal (CSV)</button></div>
+<div class="scroll"><table><thead><tr id="cabecalhoTabela"></tr></thead><tbody id="tabela"></tbody></table></div></div>
+
+<div class="panel" id="compartilharRelatorio">
+  <div class="panel-head"><h2>Compartilhar relatório por QR Code</h2></div>
+  <div class="share-tools">
+    <label>Endereço público do HTML
+      <input id="urlRelatorioQR" type="url" inputmode="url" autocomplete="url" spellcheck="false" value="https://ronaldo-consuli.github.io/Controle-de-estoque-reagentes_Microbiologia/monitoramento_reagentes.html" placeholder="https://ronaldo-consuli.github.io/Controle-de-estoque-reagentes_Microbiologia/monitoramento_reagentes.html" aria-describedby="orientacaoQR">
+    </label>
+    <button id="gerarQR" type="button">▦ Gerar QR Code</button>
+  </div>
+  <div id="orientacaoQR" class="note qr-note">Endereço do GitHub Pages preenchido automaticamente. Para funcionar no celular, publique o arquivo monitoramento_reagentes.html na raiz do repositório e ative Pages (ramificação principal / root). O QR Code não publica arquivos locais.</div>
+  <div class="qr-status" id="statusQR" role="status" aria-live="polite"></div>
+  <div class="qr-result" id="resultadoQR" hidden>
+    <canvas id="canvasQR" role="img" aria-label="QR Code para abrir este relatório"></canvas>
+    <div><button id="baixarQR" type="button">↓ Baixar QR Code (PNG)</button></div>
+  </div>
+</div>
+</div>
+<script>/* QR generator (c) Kazuhiko Arase, MIT license; bundled from QRCode for JavaScript. */
+(function(global){
+"use strict";
+const modules = {
+"./QRMode": function(module, exports, require) {
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+},
+"./QRErrorCorrectLevel": function(module, exports, require) {
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+},
+"./QRMaskPattern": function(module, exports, require) {
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+},
+"./QRMath": function(module, exports, require) {
+var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+},
+"./QRPolynomial": function(module, exports, require) {
+var QRMath = require('./QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+},
+"./QRRSBlock": function(module, exports, require) {
+var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+},
+"./QRBitBuffer": function(module, exports, require) {
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+},
+"./QR8bitByte": function(module, exports, require) {
+var QRMode = require('./QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+},
+"./QRUtil": function(module, exports, require) {
+var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+},
+"./index": function(module, exports, require) {
+//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+}
+};
+const cache = Object.create(null);
+function require(name) {
+  if (!Object.prototype.hasOwnProperty.call(modules,name)) throw new Error('Módulo QR desconhecido: '+name);
+  if (!cache[name]) {
+    const module={exports:{}};
+    cache[name]=module;
+    modules[name](module,module.exports,require);
+  }
+  return cache[name].exports;
+}
+global.QRCodeLocal = require('./index');
+})(window);
+</script>
+<script>const dados=[{"id": "RE 211", "produto": "RE 211 - Fosfato de Sódio Monobásico (g)", "produto_original": "RE 211 - Fosfato de Sódio Monobásico  (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 500.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 212", "produto": "RE 212 - Fosfato de Sódio Bibásico (g)", "produto_original": "RE 212 - Fosfato de Sódio Bibásico  (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 250.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 281", "produto": "RE 281 - Ácido Tartárico P.A. (g)", "produto_original": "RE 281 - Ácido Tartárico P.A. (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 500.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 300", "produto": "RE 300 - Agar (PCA) (g)", "produto_original": "RE 300 - Agar (PCA) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 480.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 310", "produto": "RE 310 - Agar (MRS) (g)", "produto_original": "RE 310 - Agar (MRS) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 0.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 311", "produto": "RE 311 - Agar (WLN) (g)", "produto_original": "RE 311 - Agar (WLN) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 1500.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 312", "produto": "RE 312 - Agar PDA (Batata) (g)", "produto_original": "RE 312 - Agar PDA (Batata) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 500.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 313", "produto": "RE 313 - Actidiona Cicloexamide (g)", "produto_original": "RE 313 - Actidiona Cicloexamide (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 50.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 314", "produto": "RE 314 - Resazurina (g)", "produto_original": "RE 314 - Resazurina  (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 2.5, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 315", "produto": "RE 315 - Agar Puro (g)", "produto_original": "RE 315 - Agar Puro (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 120.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 317", "produto": "RE 317 - Proteose Peptona (g)", "produto_original": "RE 317 - Proteose Peptona (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 1250.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 318", "produto": "RE 318 - Dextrose Tryptose Agar (g)", "produto_original": "RE 318 - Dextrose Tryptose Agar (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 450.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 322", "produto": "RE 322 - Chromocult Agar (g)", "produto_original": "RE 322 - Chromocult Agar (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 470.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 331", "produto": "RE 331 - Papaina (g)", "produto_original": "RE 331 - Papaina (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 10.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 332", "produto": "RE 332 - Óleo de Imersão para Microbiologia (mL)", "produto_original": "RE 332 - Óleo de Imersão para Microbiologia (g)", "unidade_corrigida": true, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 150.0, "unidade": "mL", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 333", "produto": "RE 333 - 2,3,5-Trifenil-Tetrazólio Cloreto P.A. (g)", "produto_original": "RE 333 - 2,3,5-Trifenil-Tetrazólio Cloreto P.A. (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 250.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 334", "produto": "RE 334 - Buffered Peptone Water (g)", "produto_original": "RE 334 - Buffered Peptone Water (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 480.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 336", "produto": "RE 336 - DG 18 (Dichloran glycerol chloramphenicol) Agar (base) (g)", "produto_original": "RE 336 - DG 18 (Dichloran glycerol chloramphenicol) Agar (base) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 500.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 337", "produto": "RE 337 - VRB (Violet Red Bile Lactose) Agar (g)", "produto_original": "RE 337 - VRB (Violet Red Bile Lactose) Agar (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 500.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 338", "produto": "RE 338 - Lactose Broth (g)", "produto_original": "RE 338 - Lactose Broth  (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 480.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 339", "produto": "RE 339 - Tryptic Soy agar (g)", "produto_original": "RE 339 - Tryptic Soy agar (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 40.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 341", "produto": "RE 341 - BM Lactatte (g)", "produto_original": "RE 341 - BM Lactatte (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 0.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 342", "produto": "RE 342 - Indicador Biológico (Attest) (g)", "produto_original": "RE 342 - Indicador Biológico (Attest) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 0.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 343", "produto": "RE 343 - Petrifilm (Aerobic Count Plate) (g)", "produto_original": "RE 343 - Petrifilm (Aerobic Count Plate) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 400.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 344", "produto": "RE 344 - 1-2 Test (g)", "produto_original": "RE 344 - 1-2 Test (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 0.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 345", "produto": "RE 345 - Eritrosina B (g)", "produto_original": "RE 345 - Eritrosina B (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 20.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 346", "produto": "RE 346 - Yeast and Mold (MC-Media Pad) (g)", "produto_original": "RE 346 - Yeast and Mold (MC-Media Pad) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 200.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 347", "produto": "RE 347 - Rapid Aerobic Count (MC-Media Pad) (g)", "produto_original": "RE 347 - Rapid Aerobic Count (MC-Media Pad) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 700.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 348", "produto": "RE 348 - ReadyCult Coliforms 100 (g)", "produto_original": "RE 348 - ReadyCult Coliforms 100 (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 200.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 349", "produto": "RE 349 - Colilert (g)", "produto_original": "RE 349 - Colilert (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 0.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 351", "produto": "RE 351 - Tetracycline (g)", "produto_original": "RE 351 - Tetracycline (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 0.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 353", "produto": "RE 353 - Petrifilm (E. coli and Coliform) (g)", "produto_original": "RE 353 - Petrifilm (E. coli and Coliform) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 100.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 354", "produto": "RE 354 - Clean trace Test (g)", "produto_original": "RE 354 - Clean trace Test (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 2000.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 355", "produto": "RE 355 - Petrifilm (Enterobacteriaceae) (g)", "produto_original": "RE 355 - Petrifilm (Enterobacteriaceae) (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 100.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 460", "produto": "RE 460 - Cloreto de Sódio (g)", "produto_original": "RE 460 - Cloreto de Sódio (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 250.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 530", "produto": "RE 530 - Extrato de Levedura (g)", "produto_original": "RE 530 - Extrato de Levedura (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 1150.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 713", "produto": "RE 713 - Azul de Nilo Sulfato (g)", "produto_original": "RE 713 - Azul de Nilo Sulfato (g)", "unidade_corrigida": false, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 10.0, "unidade": "g", "referencia": "—", "pf": false, "pc": false, "eb": false}, {"id": "RE 850", "produto": "RE 850 - Glicerina (mL)", "produto_original": "RE 850 - Glicerina (g)", "unidade_corrigida": true, "mes": "2026-10", "local": "Controle de estoque reagentes - Microbiologia", "aba": "Sheet1", "quantidade": 400.0, "unidade": "mL", "referencia": "Glicerina", "pf": false, "pc": true, "eb": false}];
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('pt-BR',{maximumFractionDigits:3});
+const control=r=>r.pf||r.pc||r.eb;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uniq=a=>[...new Set(a)];
+const months=uniq(dados.map(r=>r.mes)).sort();
+const monthLatest=months.at(-1)||'';
+const cycleOf=m=>Number(m.slice(0,4))-(Number(m.slice(5))<4?1:0);
+const cycle=monthLatest?cycleOf(monthLatest):new Date().getFullYear();
+const cycleMonths=months.filter(m=>cycleOf(m)===cycle);
+const monthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const monthLabel=m=>m.slice(5)+'/'+m.slice(0,4);
+const card=(label,value)=>'<div class="card"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value)+'</div></div>';
+const csvEscape=value=>{
+  let s=String(value??'');
+  // Evita execução de fórmulas se o arquivo for aberto em uma planilha.
+  if (/^\s*[=+@-]/.test(s)) s="'"+s;
+  return '"'+s.replace(/"/g,'""')+'"';
+};
+let csvMensal='';
+function render(){
+  const base=dados.filter(r=>(!$('orgao').value||($('orgao').value==='nao'?!control(r):r[$('orgao').value]))&&(!$('classe').value||control(r)===($('classe').value==='sim')));
+  const rows=base.filter(r=>r.mes===monthLatest);
+  const count=rs=>uniq(rs.map(r=>r.id)).length;
+  const estoque=u=>fmt(rows.filter(r=>r.unidade===u).reduce((s,r)=>s+(r.quantidade??0),0));
+  $('contexto').textContent='Referência: '+(monthLatest?monthLabel(monthLatest):'—')+' · '+count(rows)+' reagentes na seleção';
+  $('cards').innerHTML=card('Reagentes',count(rows))+card('Controlados',count(rows.filter(control)))+card('Não controlados',count(rows.filter(r=>!control(r))))+card('Estoque (g)',estoque('g'))+card('Estoque (mL)',estoque('mL'));
+  $('agencias').innerHTML=['pf','pc','eb'].map((k,i)=>card(['Polícia Federal','Polícia Civil','Exército'][i],count(rows.filter(r=>r[k])))).join('')+card('Não controlados',count(rows.filter(r=>!control(r))));
+  const matrix=new Map();
+  base.filter(r=>cycleOf(r.mes)===cycle).forEach(r=>{
+    const key=JSON.stringify([r.id,r.unidade]);
+    if(!matrix.has(key))matrix.set(key,{...r,cells:new Map()});
+    const g=matrix.get(key);
+    ['pf','pc','eb'].forEach(k=>g[k]=g[k]||r[k]);
+    if(!g.cells.has(r.mes))g.cells.set(r.mes,{v:0,n:0,missing:false});
+    const cell=g.cells.get(r.mes);
+    if(r.quantidade===null)cell.missing=true;
+    else{cell.v+=r.quantidade;cell.n++;}
+  });
+  const tableRows=[...matrix.values()];
+  $('linhasTabela').textContent=tableRows.length+' reagentes · Abril/'+cycle+' a março/'+(cycle+1)+' · '+cycleMonths.length+' meses importados';
+  const headers=['Reagente','Classificação','Federal','Civil','Exército',...cycleMonths.map(m=>monthNames[Number(m.slice(5))-1]+'/'+m.slice(0,4))];
+  $('cabecalhoTabela').innerHTML=headers.map(h=>'<th>'+esc(h)+'</th>').join('');
+  const tableValue=(r,m)=>{const c=r.cells.get(m);return !c?.n?'—':fmt(c.v)+(c.missing?'*':'');};
+  $('tabela').innerHTML=tableRows.map(r=>'<tr><td>'+esc(r.produto)+'</td><td><span class="badge '+(control(r)?'controlled':'uncontrolled')+'">'+(control(r)?'Controlado':'Não controlado')+'</span></td>'+['pf','pc','eb'].map(k=>'<td class="'+(r[k]?'yes':'')+'">'+(r[k]?'Sim':'—')+'</td>').join('')+cycleMonths.map(m=>{const c=r.cells.get(m);return '<td class="'+(!c?.n?'empty':c.v===0?'zero':'')+'">'+tableValue(r,m)+'</td>';}).join('')+'</tr>').join('')||'<tr><td colspan="'+headers.length+'">Nenhum reagente para os filtros selecionados.</td></tr>';
+  // O download corresponde à mesma tabela exibida, respeitando os dois filtros.
+  const csvRows=[headers,...tableRows.map(r=>[
+    r.produto,control(r)?'Controlado':'Não controlado',
+    ...['pf','pc','eb'].map(k=>r[k]?'Sim':'—'),
+    ...cycleMonths.map(m=>tableValue(r,m))
+  ])];
+  csvMensal=csvRows.map(row=>row.map(csvEscape).join(';')).join('\r\n');
+}
+$('classe').addEventListener('change',render);
+$('orgao').addEventListener('change',render);
+$('limpar').addEventListener('click',()=>{$('classe').value='';$('orgao').value='';render();});
+$('baixarTabela').addEventListener('click',()=>{
+  const blob=new Blob(['\uFEFF'+csvMensal],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='estoque_mensal_'+cycle+'_'+(cycle+1)+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+render();
+
+// Esta função é executada somente no HTML exportado, não dentro do iframe Streamlit.
+(function prepararQRCode(){
+  const campo=$('urlRelatorioQR'), status=$('statusQR'), resultado=$('resultadoQR');
+  const canvas=$('canvasQR');
+  if (window.location.protocol==='https:' && window.location.hostname.toLowerCase().endsWith('.github.io')) {
+    // Só usa a URL real quando esta página está publicada no GitHub Pages.
+    // No iframe do Streamlit e em arquivos locais mantém o endereço configurado.
+    campo.value=window.location.href.split('#')[0].split('?')[0];
+  } else {
+    atualizarStatus('O QR Code usará o endereço publicado do Microbiologia. Atualize o HTML no GitHub para mostrar os dados recentes.');
+  }
+  function atualizarStatus(texto, erro=false) {
+    status.textContent=texto;
+    status.style.color=erro?'#A13A2F':'#526B81';
+  }
+  $('gerarQR').addEventListener('click',()=>{
+    resultado.hidden=true;
+    const valor=campo.value.trim();
+    let url;
+    try {url=new URL(valor);} catch (_) {
+      atualizarStatus('Informe o endereço HTTPS do HTML publicado.',true);return;
+    }
+    const hostname=url.hostname.toLowerCase();
+    if(url.protocol!=='https:'||!hostname||hostname==='localhost'||hostname==='127.0.0.1'||hostname==='::1'||url.username||url.password){
+      atualizarStatus('Use um endereço público HTTPS, que possa ser aberto pelo celular.',true);return;
+    }
+    if(['github.com','www.github.com','raw.githubusercontent.com','gist.github.com'].includes(hostname)){
+      atualizarStatus('Informe o endereço do site publicado (ex.: usuario.github.io), e não o link do arquivo no GitHub.',true);return;
+    }
+    if(url.href.length>1000){
+      atualizarStatus('O endereço é muito longo para gerar um QR Code legível.',true);return;
+    }
+    try {
+      // Esta biblioteca está incluída no HTML, sem chamada a sites externos.
+      const qr=new window.QRCodeLocal(0, 0); // nível de correção M.
+      qr.addData(url.href);
+      qr.make();
+      const escala=8, margem=4, n=qr.getModuleCount();
+      canvas.width=(n+2*margem)*escala;
+      canvas.height=(n+2*margem)*escala;
+      const ctx=canvas.getContext('2d');
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#143257';
+      for(let linha=0;linha<n;linha++)for(let coluna=0;coluna<n;coluna++){
+        if(qr.isDark(linha,coluna))ctx.fillRect((coluna+margem)*escala,(linha+margem)*escala,escala,escala);
+      }
+      resultado.hidden=false;
+      atualizarStatus('QR Code pronto. Confira se o link publicado abre no celular.');
+    } catch(e) {
+      atualizarStatus('Não foi possível gerar o QR Code para esse endereço.',true);
+    }
+  });
+  $('baixarQR').addEventListener('click',()=>{
+    if(resultado.hidden)return;
+    canvas.toBlob(blob=>{
+      if(!blob){atualizarStatus('Não foi possível salvar a imagem do QR Code.',true);return;}
+      const endereco=URL.createObjectURL(blob), a=document.createElement('a');
+      a.href=endereco;a.download='qr_estoque_mensal.png';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(endereco),1200);
+    },'image/png');
+  });
+  campo.addEventListener('input',()=>{resultado.hidden=true;atualizarStatus('');});
+})();
+
+</script></body></html>
